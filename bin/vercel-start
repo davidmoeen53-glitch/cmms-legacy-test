@@ -18,7 +18,7 @@ if [ "${SEED_DEMO_DATA:-false}" = "true" ]; then
   echo "Checking demo seed state..."
   if ! bundle _1.17.3_ exec rails runner 'exit(User.count > 0 ? 0 : 1)'; then
     echo "Database is empty; loading demo seed data..."
-    bundle _1.17.3_ exec rake db:seed
+    bundle _1.17.3_ exec rake db:seed --trace
   else
     echo "Users already exist; skipping demo seed."
   fi
