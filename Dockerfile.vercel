@@ -3,14 +3,31 @@ FROM ruby:2.3.8
 WORKDIR /app
 
 # ruby:2.3.8 is based on archived Debian Stretch repositories.
-# Keep only archive repositories that still exist and disable expired signature checks.
 RUN printf '%s\n' \
   'deb [trusted=yes] http://archive.debian.org/debian stretch main' \
   'deb [trusted=yes] http://archive.debian.org/debian-security stretch/updates main' \
   > /etc/apt/sources.list \
  && apt-get -o Acquire::Check-Valid-Until=false -o Acquire::AllowInsecureRepositories=true update \
- && apt-get install -y --allow-unauthenticated --no-install-recommends build-essential libpq-dev nodejs ca-certificates postgresql-client \
+ && apt-get install -y --allow-unauthenticated --no-install-recommends \
+      build-essential nodejs ca-certificates curl bzip2 libssl-dev zlib1g-dev \
  && rm -rf /var/lib/apt/lists/*
+
+# Neon's authentication requires libpq >= 10. The legacy Ruby image ships an
+# older client, so build a modern-enough libpq while keeping Ruby/Rails intact.
+RUN curl -fsSL https://ftp.postgresql.org/pub/source/v10.23/postgresql-10.23.tar.bz2 -o /tmp/postgresql.tar.bz2 \
+ && tar -xjf /tmp/postgresql.tar.bz2 -C /tmp \
+ && cd /tmp/postgresql-10.23 \
+ && ./configure --prefix=/usr/local/pgsql --with-openssl --without-readline \
+ && make -C src/interfaces/libpq -j2 \
+ && make -C src/interfaces/libpq install \
+ && make -C src/bin/pg_config install \
+ && make -C src/include install \
+ && echo '/usr/local/pgsql/lib' > /etc/ld.so.conf.d/postgresql.conf \
+ && ldconfig \
+ && rm -rf /tmp/postgresql-10.23 /tmp/postgresql.tar.bz2
+
+ENV PATH=/usr/local/pgsql/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/pgsql/lib
 
 RUN gem install bundler -v 1.17.3 --no-document
 
