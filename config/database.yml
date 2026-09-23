@@ -1,11 +1,20 @@
 <%
 require 'uri'
+require 'cgi'
 
 def database_config_from_url(name)
   url = ENV[name]
   raise "#{name} is not set" if url.nil? || url.empty?
 
   uri = URI.parse(url)
+  query = CGI.parse(uri.query.to_s)
+  endpoint_id = uri.host.to_s.split('.').first
+
+  options = query['options'] && query['options'].first
+  if (options.nil? || options.empty?) && endpoint_id && !endpoint_id.empty?
+    options = "endpoint=#{endpoint_id}"
+  end
+
   {
     'adapter'  => (uri.scheme == 'postgres' ? 'postgresql' : uri.scheme),
     'encoding' => 'unicode',
@@ -14,8 +23,10 @@ def database_config_from_url(name)
     'username' => uri.user,
     'password' => uri.password,
     'host'     => uri.host,
-    'port'     => uri.port
-  }
+    'port'     => uri.port,
+    'sslmode'  => (query['sslmode'] && query['sslmode'].first) || 'require',
+    'options'  => options
+  }.reject { |_, value| value.nil? || value.empty? }
 end
 
 production_db = database_config_from_url('DATABASE_URL') if ENV['RAILS_ENV'] == 'production'
@@ -35,4 +46,3 @@ production:
 <% production_db.each do |key, value| %>
   <%= key %>: <%= value %>
 <% end %>
-  sslmode: require
