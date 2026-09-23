@@ -25,7 +25,8 @@ def database_config_from_url(name)
     'host'     => uri.host,
     'port'     => uri.port,
     'sslmode'  => (query['sslmode'] && query['sslmode'].first) || 'require',
-    'options'  => options
+    'options'  => options,
+    'variables' => { 'statement_timeout' => 5000 }
   }.reject { |_, value| value.nil? || (value.respond_to?(:empty?) && value.empty?) }
 end
 
