@@ -7,6 +7,7 @@ gem 'rails', '3.0.20'
 
 # gem 'sqlite3'
 gem 'pg'
+gem 'json', '1.8.6'
 
 gem 'cancan'
 gem 'haml'
