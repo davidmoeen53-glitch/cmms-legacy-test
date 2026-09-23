@@ -4,6 +4,13 @@ set -eu
 : "${DATABASE_URL:?DATABASE_URL must be configured}"
 : "${SECRET_TOKEN:?SECRET_TOKEN must be configured}"
 
+# Rails 3's PostgreSQL adapter does not forward modern URI query parameters.
+# Feed Neon's required SSL mode and endpoint routing directly to libpq.
+DB_HOST="$(printf '%s' "$DATABASE_URL" | sed -E 's#^[^@]+@([^/:?]+).*#\1#')"
+NEON_ENDPOINT_ID="$(printf '%s' "$DB_HOST" | cut -d. -f1)"
+export PGSSLMODE=require
+export PGOPTIONS="endpoint=${NEON_ENDPOINT_ID}"
+
 echo "Running database migrations..."
 bundle _1.17.3_ exec rake db:migrate
 
