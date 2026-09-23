@@ -9,11 +9,8 @@ def database_config_from_url(name)
   uri = URI.parse(url)
   query = CGI.parse(uri.query.to_s)
   endpoint_id = uri.host.to_s.split('.').first
-
   options = query['options'] && query['options'].first
-  if (options.nil? || options.empty?) && endpoint_id && !endpoint_id.empty?
-    options = "endpoint=#{endpoint_id}"
-  end
+  options = "endpoint=#{endpoint_id}" if (options.nil? || options.empty?) && !endpoint_id.to_s.empty?
 
   {
     'adapter'  => (uri.scheme == 'postgres' ? 'postgresql' : uri.scheme),
@@ -25,8 +22,7 @@ def database_config_from_url(name)
     'host'     => uri.host,
     'port'     => uri.port,
     'sslmode'  => (query['sslmode'] && query['sslmode'].first) || 'require',
-    'options'  => options,
-    'variables' => { 'statement_timeout' => 5000 }
+    'options'  => options
   }.reject { |_, value| value.nil? || (value.respond_to?(:empty?) && value.empty?) }
 end
 
@@ -45,5 +41,5 @@ development:
 
 production:
 <% production_db.each do |key, value| %>
-  <%= key %>: <%= value %>
+  <%= key %>: <%= value.inspect %>
 <% end %>
