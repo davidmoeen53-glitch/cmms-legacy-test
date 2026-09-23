@@ -10,7 +10,6 @@ gem 'pg'
 
 gem 'cancan'
 gem 'haml'
-gem "thin"
 gem 'devise'
 gem "will_paginate"
 gem "bootstrap-will_paginate"
