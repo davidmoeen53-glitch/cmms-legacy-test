@@ -22,7 +22,7 @@ RUN curl -fsSL https://ftp.postgresql.org/pub/source/v10.23/postgresql-10.23.tar
  && make -C src/interfaces/libpq install \
  && make -C src/bin/pg_config install \
  && mkdir -p /usr/local/pgsql/include \
- && cp src/interfaces/libpq/libpq-fe.h src/include/postgres_ext.h /usr/local/pgsql/include/ \
+ && cp src/interfaces/libpq/libpq-fe.h src/include/postgres_ext.h src/include/pg_config_ext.h /usr/local/pgsql/include/ \
  && echo '/usr/local/pgsql/lib' > /etc/ld.so.conf.d/postgresql.conf \
  && ldconfig \
  && rm -rf /tmp/postgresql-10.23 /tmp/postgresql.tar.bz2
@@ -33,7 +33,8 @@ ENV LD_LIBRARY_PATH=/usr/local/pgsql/lib
 RUN gem install bundler -v 1.17.3 --no-document
 
 COPY Gemfile Gemfile.lock ./
-RUN bundle _1.17.3_ install --without development test
+RUN bundle config build.pg --with-pg-config=/usr/local/pgsql/bin/pg_config \
+ && bundle _1.17.3_ install --without development test
 
 COPY . .
 
