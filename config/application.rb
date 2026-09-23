@@ -2,6 +2,23 @@ require File.expand_path('../boot', __FILE__)
 
 require 'rails/all'
 
+# Compatibility patch for Rails 3.0.20 against modern PostgreSQL.
+# Rails 3 temporarily sets client_min_messages to the obsolete value "panic"
+# while enabling standard_conforming_strings. PostgreSQL 15+ rejects it.
+require 'active_record/connection_adapters/postgresql_adapter'
+module ActiveRecord
+  module ConnectionAdapters
+    class PostgreSQLAdapter
+      def set_standard_conforming_strings
+        old, self.client_min_messages = client_min_messages, 'error'
+        execute('SET standard_conforming_strings = on') rescue nil
+      ensure
+        self.client_min_messages = old
+      end
+    end
+  end
+end
+
 # If you have a Gemfile, require the gems listed there, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(:default, Rails.env) if defined?(Bundler)
