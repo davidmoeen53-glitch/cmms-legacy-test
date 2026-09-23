@@ -9,6 +9,24 @@ require 'active_record/connection_adapters/postgresql_adapter'
 module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLAdapter
+
+      # PostgreSQL 12+ removed pg_attrdef.adsrc. Use pg_get_expr instead.
+      def column_definitions(table_name)
+        query <<-SQL
+          SELECT a.attname,
+                 format_type(a.atttypid, a.atttypmod),
+                 pg_get_expr(d.adbin, d.adrelid),
+                 a.attnotnull
+          FROM pg_attribute a
+          LEFT JOIN pg_attrdef d
+            ON a.attrelid = d.adrelid AND a.attnum = d.adnum
+          WHERE a.attrelid = '#{quote_table_name(table_name)}'::regclass
+            AND a.attnum > 0
+            AND NOT a.attisdropped
+          ORDER BY a.attnum
+        SQL
+      end
+
       def set_standard_conforming_strings
         old, self.client_min_messages = client_min_messages, 'error'
         execute('SET standard_conforming_strings = on') rescue nil
