@@ -18,4 +18,4 @@ if [ "${SEED_DEMO_DATA:-false}" = "true" ]; then
 fi
 
 echo "Starting Rails on port ${PORT:-80}..."
-exec bundle _1.17.3_ exec rails server thin -e production -p "${PORT:-80}" -b 0.0.0.0
+exec bundle _1.17.3_ exec rails server webrick -e production -p "${PORT:-80}" -b 0.0.0.0
