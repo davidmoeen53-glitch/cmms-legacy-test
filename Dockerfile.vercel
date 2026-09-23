@@ -21,7 +21,6 @@ RUN curl -fsSL https://ftp.postgresql.org/pub/source/v10.23/postgresql-10.23.tar
  && make -C src/interfaces/libpq -j2 \
  && make -C src/interfaces/libpq install \
  && make -C src/bin/pg_config install \
- && make -C src/include install \
  && echo '/usr/local/pgsql/lib' > /etc/ld.so.conf.d/postgresql.conf \
  && ldconfig \
  && rm -rf /tmp/postgresql-10.23 /tmp/postgresql.tar.bz2
