@@ -2,11 +2,14 @@ FROM ruby:2.3.8
 
 WORKDIR /app
 
-# Ruby 2.3 uses Debian Jessie, whose package mirrors are archived.
-RUN sed -i 's|deb.debian.org/debian|archive.debian.org/debian|g; s|security.debian.org|archive.debian.org|g' /etc/apt/sources.list \
- && sed -i '/jessie-updates/d' /etc/apt/sources.list \
- && apt-get -o Acquire::Check-Valid-Until=false update \
- && apt-get install -y --no-install-recommends build-essential libpq-dev nodejs ca-certificates \
+# ruby:2.3.8 is based on archived Debian Stretch repositories.
+# Keep only archive repositories that still exist and disable expired signature checks.
+RUN printf '%s\n' \
+  'deb [trusted=yes] http://archive.debian.org/debian stretch main' \
+  'deb [trusted=yes] http://archive.debian.org/debian-security stretch/updates main' \
+  > /etc/apt/sources.list \
+ && apt-get -o Acquire::Check-Valid-Until=false -o Acquire::AllowInsecureRepositories=true update \
+ && apt-get install -y --allow-unauthenticated --no-install-recommends build-essential libpq-dev nodejs ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 
 RUN gem install bundler -v 1.17.3 --no-document
@@ -20,6 +23,5 @@ RUN chmod +x bin/vercel-start
 
 ENV RAILS_ENV=production
 ENV RACK_ENV=production
-ENV PORT=80
 
 CMD ["./bin/vercel-start"]
