@@ -3,7 +3,16 @@
   "services": {
     "cmms": {
       "runtime": "container",
-      "root": "./"
+      "root": "./",
+      "entrypoint": "Dockerfile.vercel"
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "cmms"
+      }
+    }
+  ]
 }
