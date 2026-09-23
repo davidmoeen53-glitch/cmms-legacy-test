@@ -27,6 +27,13 @@ module ActiveRecord
         SQL
       end
 
+      # Old Rails 3 migration code can rescue catalog/session-setting errors inside
+      # a PostgreSQL transaction, leaving the transaction aborted on PostgreSQL 15+.
+      # Run legacy migrations without wrapping each migration in one DDL transaction.
+      def supports_ddl_transactions?
+        false
+      end
+
       def set_standard_conforming_strings
         old, self.client_min_messages = client_min_messages, 'error'
         execute('SET standard_conforming_strings = on') rescue nil
