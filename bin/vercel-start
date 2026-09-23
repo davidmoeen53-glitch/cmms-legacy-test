@@ -12,7 +12,7 @@ export PGSSLMODE=require
 export PGOPTIONS="endpoint=${NEON_ENDPOINT_ID}"
 
 echo "Running database migrations..."
-bundle _1.17.3_ exec rake db:migrate
+bundle _1.17.3_ exec rake db:migrate --trace
 
 if [ "${SEED_DEMO_DATA:-false}" = "true" ]; then
   echo "Checking demo seed state..."
